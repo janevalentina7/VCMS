@@ -212,6 +212,18 @@ Running just the API? `npm run dev:server`. The API also serves the compiled SPA
 `client/dist` when it exists, so `npm run build && npm start` gives you the whole portal on a
 single port.
 
+**Restoring a recycled environment.** Git-ignored artefacts (`node_modules/`, `server/.env`,
+`client/.env`, the SQLite file and `client/dist`) are not part of the repository, so a fresh
+container or sandbox can leave you with a clean checkout. One command recreates all of them —
+dependencies (building native modules against local Node headers when the prebuild is unavailable),
+environment files with freshly generated JWT secrets, the migrated + seeded database and the client
+build:
+
+```bash
+bash scripts/dev-bootstrap.sh    # safe to re-run: every step is skipped when satisfied
+npm run dev                      # then start the portal
+```
+
 ---
 
 ## 7. Environment variables
@@ -336,6 +348,7 @@ the first citizen — these only fill the form, never bypass authentication.
 | Command | Description |
 | --- | --- |
 | `npm run setup` | Install workspaces, run migrations, seed the database |
+| `bash scripts/dev-bootstrap.sh` | Restore a recycled checkout: deps (incl. native modules), `.env` files, database, client build |
 | `npm run dev` | Run API (:4000) and Vite dev server (:5173) together with coloured logs |
 | `npm run dev:server` | API only, with `node --watch` auto-restart |
 | `npm run dev:client` | Vite dev server only (proxies `/api` + `/uploads` to the API) |
