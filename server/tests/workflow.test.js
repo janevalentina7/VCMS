@@ -394,6 +394,41 @@ describe('complaint workflow', () => {
     assert.equal(paged.data.meta.pagination.pageSize, 2);
     assert.ok(paged.data.meta.pagination.totalPages >= 2);
   });
+
+  // Regression: `mine=true` means "assigned to me" for staff but "raised by me"
+  // for citizens, so the citizen dashboard never comes back empty.
+  test('mine=true is scoped correctly for citizens and officers', async () => {
+    const citizenApi = await client();
+    await citizenApi.post('/api/auth/login', { identifier: CITIZEN.email, password: CITIZEN.password });
+    const own = await citizenApi.get('/api/complaints?mine=true&pageSize=50');
+    assert.ok(own.data.data.length >= 1, 'citizen sees the complaints they registered');
+    assert.ok(own.data.data.every((c) => c.citizenName === CITIZEN.name), 'only own complaints');
+
+    const officerApi = await client();
+    await officerApi.post('/api/auth/login', { identifier: OFFICER.email, password: OFFICER.password });
+    const assigned = await officerApi.get('/api/complaints?mine=true&pageSize=50');
+    assert.ok(assigned.data.data.length >= 1, 'officer sees assigned work');
+    assert.ok(assigned.data.data.every((c) => c.assignedOfficerName === 'Test Officer'), 'only assigned complaints');
+
+    const adminApi = await client();
+    await adminApi.post('/api/auth/login', { identifier: ADMIN.email, password: ADMIN.password });
+    const all = await adminApi.get('/api/complaints?pageSize=50');
+    assert.ok(all.data.data.length >= assigned.data.data.length, 'admin scope is the superset');
+  });
+
+  test('the public tracking lookup resolves a complaint by id and by ration number', async () => {
+    const api = await client();
+    await api.post('/api/auth/login', { identifier: ADMIN.email, password: ADMIN.password });
+
+    const byRef = await api.get(`/api/complaints/track?complaintId=${complaintId}`);
+    assert.equal(byRef.status, 200, JSON.stringify(byRef.data));
+    assert.equal(byRef.data.data[0].complaintId, complaintId);
+    assert.ok(Array.isArray(byRef.data.data[0].history), 'timeline included');
+
+    const byRation = await api.get(`/api/complaints/track?rationNumber=${CITIZEN.rationNumber}`);
+    assert.equal(byRation.status, 200, JSON.stringify(byRation.data));
+    assert.ok(byRation.data.data.length >= 1, 'lookup by ration number returns results');
+  });
 });
 
 describe('analytics & reporting', () => {

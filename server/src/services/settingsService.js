@@ -2,7 +2,7 @@
  * Application settings (key/value, database backed) so administrators can tune
  * workflow behaviour without a redeploy.
  */
-import { db } from '../db/index.js';
+import { db, asIso } from '../db/index.js';
 import { DEFAULT_SETTINGS } from '../config/constants.js';
 import config from '../config/env.js';
 
@@ -58,7 +58,7 @@ export const all = async () => {
     label: r.label ?? r.key,
     group: r.group,
     type: r.type,
-    updatedAt: r.updated_at,
+    updatedAt: asIso(r.updated_at),
   }));
 };
 

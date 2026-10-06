@@ -98,7 +98,11 @@ const applyFilters = (query, filters = {}) => {
   if (wardId) query.where('c.ward_id', wardId);
   if (officerId) query.where('c.assigned_officer_id', officerId);
   if (citizenId) query.where('c.citizen_id', citizenId);
-  if (mine === 'true') query.where('c.assigned_officer_id', filters.mineUserId);
+  // "mine" means "assigned to me" for officers/admins and "raised by me" for citizens.
+  if (mine === 'true' && filters.mineUserId) {
+    if (filters.mineRole === ROLES.CITIZEN) query.where('c.citizen_id', filters.mineUserId);
+    else query.where('c.assigned_officer_id', filters.mineUserId);
+  }
   if (from) query.where('c.complaint_date', '>=', new Date(`${from}T00:00:00.000Z`));
   if (to) query.where('c.complaint_date', '<=', new Date(`${to}T23:59:59.999Z`));
   return query;
@@ -134,13 +138,13 @@ export const listComplaints = async (user, filters = {}) => {
     db('complaints as c')
       .leftJoin('categories as cat', 'cat.id', 'c.category_id')
       .leftJoin('users as o', 'o.id', 'c.assigned_officer_id'),
-    { ...filters, mineUserId: user?.id },
+    { ...filters, mineUserId: user?.id, mineRole: user?.role },
   );
   applyScope(countQuery, user);
   const [countRow] = await countQuery.countDistinct({ total: 'c.id' });
   const total = Number(countRow?.total ?? 0);
 
-  const rowsQuery = applyFilters(baseQuery(), { ...filters, mineUserId: user?.id });
+  const rowsQuery = applyFilters(baseQuery(), { ...filters, mineUserId: user?.id, mineRole: user?.role });
   applyScope(rowsQuery, user);
   applySort(rowsQuery, filters.sort).limit(pageSize).offset((page - 1) * pageSize);
   const rows = await rowsQuery;
@@ -630,7 +634,7 @@ export const getHistory = async (user, idOrRef) => {
 export const countsByStatus = async (user, filters = {}) => {
   const query = applyFilters(
     db('complaints as c').leftJoin('categories as cat', 'cat.id', 'c.category_id').leftJoin('users as o', 'o.id', 'c.assigned_officer_id'),
-    { ...filters, mineUserId: user?.id },
+    { ...filters, mineUserId: user?.id, mineRole: user?.role },
   );
   applyScope(query, user);
   const rows = await query.groupBy('c.status').select('c.status').count({ total: 'c.id' });
