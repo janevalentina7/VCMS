@@ -1,0 +1,30 @@
+{
+  "name": "vcms",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Village Complaint Management System (VCMS) - Digital Grievance Redressal Portal for village administrations",
+  "license": "MIT",
+  "workspaces": [
+    "server",
+    "client"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "setup": "npm install && npm run db:migrate && npm run db:seed",
+    "dev": "concurrently -k -n API,WEB -c blue,magenta \"npm:dev:server\" \"npm:dev:client\"",
+    "dev:server": "npm --workspace server run dev",
+    "dev:client": "npm --workspace client run dev",
+    "build": "npm --workspace client run build",
+    "start": "npm --workspace server run start",
+    "db:migrate": "npm --workspace server run db:migrate",
+    "db:rollback": "npm --workspace server run db:rollback",
+    "db:seed": "npm --workspace server run db:seed",
+    "db:reset": "npm --workspace server run db:reset",
+    "test": "npm --workspace server run test"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

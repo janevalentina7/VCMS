@@ -1,0 +1,41 @@
+{
+  "name": "@vcms/server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "VCMS REST API server - Express + Knex (SQLite for dev, PostgreSQL for production)",
+  "type": "module",
+  "main": "src/index.js",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "db:migrate": "knex --knexfile knexfile.js migrate:latest",
+    "db:rollback": "knex --knexfile knexfile.js migrate:rollback",
+    "db:seed": "node src/db/seed.js",
+    "db:reset": "node src/db/seed.js --fresh",
+    "test": "node --test tests/*.test.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^13.0.3",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dayjs": "^1.11.13",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "knex": "^3.1.0",
+    "morgan": "^1.10.0",
+    "multer": "^2.0.2",
+    "pdfkit": "^0.15.2",
+    "sharp": "^0.33.5",
+    "zod": "^3.24.1"
+  },
+  "optionalDependencies": {
+    "pg": "^8.13.1"
+  }
+}
